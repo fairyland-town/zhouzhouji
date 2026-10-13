@@ -20,3 +20,6 @@ android/*.jks
 *.log
 .DS_Store
 Thumbs.db
+
+# gh 的本地配置（指向 keyring 里的 token，不放标准位置是为了绕开沙箱）
+.gh/
