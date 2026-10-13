@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Capacitor 默认前景已弃用：真正的图标由 tools/make_android_icons.mjs 生成到
+     mipmap-*/ic_launcher_foreground.png，mipmap-anydpi-v26/ic_launcher.xml 引用的是后者。
+     这里保留一个透明占位，避免别处 @drawable/ic_launcher_foreground 引用时报错。 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108" />

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="description" content="周周记 —— 校园活动周历。粘贴通知自动提取活动名称、时间、地点，自动归入对应周；内置打卡、待办、记账与账户对账。纯本地、离线可用。">
+<title>周周记</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="周周记">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+</head>
+<body>
+  <div id="phone">
+    <div id="app"></div>
+  </div>
+
+  <!-- 直接双击打开（file:// 协议）时，浏览器会拦截 ES Module。
+       这里给出明确指引，而不是让用户面对一片空白。 -->
+  <noscript>
+    <div style="max-width:420px;margin:40px auto;padding:20px;background:#fff;border:1px solid #e6e9f0;border-radius:12px;font-family:sans-serif;line-height:1.7">
+      <h2 style="margin:0 0 10px;font-size:17px">需要启用 JavaScript</h2>
+      <p style="margin:0;color:#5b6678;font-size:14px">本应用完全在浏览器本地运行，请开启 JavaScript 后重新打开。</p>
+    </div>
+  </noscript>
+
+  <script>
+    // 检测 file:// 场景：提示用户改用本地服务器，避免看到空白页不知所措
+    (function () {
+      if (location.protocol !== 'file:') return;
+      window.addEventListener('error', function (e) {
+        if (e.target && e.target.tagName === 'SCRIPT') showFileHint();
+      }, true);
+      setTimeout(function () {
+        if (!document.querySelector('.app-header, #screen-slot')) showFileHint();
+      }, 700);
+
+      var shown = false;
+      function showFileHint() {
+        if (shown) return;
+        shown = true;
+        var box = document.createElement('div');
+        box.style.cssText = 'position:fixed;inset:0;background:#f4f6fa;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif';
+        box.innerHTML =
+          '<div style="max-width:430px;background:#fff;border:1px solid #e6e9f0;border-radius:16px;padding:26px;box-shadow:0 8px 28px rgba(20,30,55,.14)">' +
+          '<div style="font-size:19px;font-weight:700;margin-bottom:12px">请用本地服务器打开</div>' +
+          '<div style="font-size:14px;color:#5b6678;line-height:1.75;margin-bottom:18px">' +
+          '浏览器不允许通过 <code style="background:#f4f6fa;padding:1px 5px;border-radius:4px">file://</code> 直接加载本应用（ES Module 安全限制）。<br><br>' +
+          '<b>解决办法（任选其一）：</b><br>' +
+          '① 回到项目目录，双击 <b>tools\\启动本地服务器.bat</b>，会自动打开正确地址<br>' +
+          '② 用 VS Code 的 Live Server 插件打开<br>' +
+          '③ 在项目目录执行：<code style="background:#f4f6fa;padding:1px 5px;border-radius:4px">python -m http.server 8080 --directory web</code>，再访问 <b>http://localhost:8080</b>' +
+          '</div>' +
+          '<div style="font-size:13px;color:#939db0">提示：应用本身完全离线，只是需要一个本地地址来加载模块。</div>' +
+          '</div>';
+        document.body.appendChild(box);
+      }
+    })();
+  </script>
+
+  <script type="module" src="js/main.js"></script>
+
+  <!-- Service Worker 注册：让应用可安装到安卓主屏幕，并在离线时可用。
+       file:// 协议下 SW 不可用，直接跳过，不影响本地调试。
+       ⚠️ 安卓壳（Capacitor）里**必须跳过** —— 那时资源由 APK 自带，
+          再套一层 SW 缓存只会在应用升级后继续喂旧文件。 -->
+  <script>
+    (function () {
+      if (!('serviceWorker' in navigator)) return;
+      if (location.protocol === 'file:') return;
+      // 原生壳内不注册 SW（Capacitor 会把 Capacitor 对象注入 WebView）
+      if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function'
+          && window.Capacitor.isNativePlatform()) return;
+
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js', { scope: './' }).then(function (reg) {
+          // 有新版本在等待时，直接让它接管（本应用无表单中途状态，切换成本低）
+          reg.addEventListener('updatefound', function () {
+            var sw = reg.installing;
+            if (!sw) return;
+            sw.addEventListener('statechange', function () {
+              if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+                sw.postMessage('skipWaiting');
+              }
+            });
+          });
+          // 每次打开顺手检查更新
+          reg.update().catch(function () {});
+        }).catch(function (err) {
+          console.warn('[PWA] Service Worker 注册失败（不影响使用）:', err.message);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

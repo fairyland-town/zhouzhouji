@@ -1,0 +1,22 @@
+# 依赖与构建产物
+node_modules/
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+android/capacitor-cordova-android-plugins/build/
+# ⚠️ 必须用 `**`：`dist/*.apk` 只匹配 dist 的**直接子文件**，
+#    而 APK 还会落在 dist/历史版本/ 和 dist/debug历史/ 里（共 ~160MB）。
+dist/**/*.apk
+dist/**/*.aab
+
+# 🔴 签名密钥：绝对不能进版本库
+#    泄漏的后果不是「别人能看你的代码」，而是「别人能伪造你的应用更新」。
+android/keystore.properties
+android/*.keystore
+android/*.jks
+
+# 本地服务与调试产物
+*.log
+.DS_Store
+Thumbs.db

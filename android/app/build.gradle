@@ -1,0 +1,124 @@
+apply plugin: 'com.android.application'
+
+// 版本号从根目录的 package.json 读取，避免出现「网页端 v1.11.0、安卓端 1.0」这种
+// 对不上的情况（package.json 是版本号唯一真源，见 README「版本号三处」）。
+// versionCode 由 semver 折算：major*10000 + minor*100 + patch，必须单调递增。
+def appPackageJson = new groovy.json.JsonSlurper().parse(file('../../package.json'))
+def appVersionName = appPackageJson.version.toString()
+def appVersionParts = appVersionName.split('\\.').collect { it.replaceAll(/[^0-9].*$/, '') as int }
+def appVersionCode = appVersionParts[0] * 10000 + (appVersionParts.size() > 1 ? appVersionParts[1] * 100 : 0) + (appVersionParts.size() > 2 ? appVersionParts[2] : 0)
+
+// 正式版签名配置（v1.12.0 起）。
+//
+// 为什么放在 android/keystore.properties 而不是写死在这里：
+//   那个文件里是密码，不应该跟工程一起被分享/提交。
+//   缺失时**不报错**，只是不出带正式签名的 release 包 ——
+//   这样别人 clone 下来依然能 build（走 debug 签名），不会卡住。
+def keystorePropsFile = rootProject.file('keystore.properties')
+def keystoreProps = new Properties()
+def hasReleaseKeystore = keystorePropsFile.exists()
+if (hasReleaseKeystore) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+
+android {
+    namespace = "com.zhouzhouji.app"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.zhouzhouji.app"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode appVersionCode
+        versionName appVersionName
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+        ndk {
+            // 🔴 只打包 ARM 的原生库（v1.12.0 加）。
+            //
+            // 为什么必须加：设备端 OCR（ML Kit）带了一个 11 MB 的
+            // libmlkit_google_ocr_pipeline.so，Gradle 默认会把**四种 CPU 架构**
+            // 全打进同一个 APK，于是 4 × 11 MB ≈ 40 MB 全是死重量。
+            // 实测：不限制时 APK 51.8 MB，限制到 arm64 + arm32 后 ≈ 28 MB。
+            //
+            // 为什么砍掉的是 x86 / x86_64：这两个只有**模拟器**在用，
+            // 真机一律是 ARM。留 armeabi-v7a 是为了照顾少数 32 位老机型。
+            //
+            // ⚠️ 在 x86 模拟器上装这个包会失败（提示 INSTALL_FAILED_NO_MATCHING_ABIS）。
+            //    要跑模拟器就临时把下面这行注释掉，或者加回 "x86_64"。
+            abiFilters "arm64-v8a", "armeabi-v7a"
+        }
+    }
+    // 🔴 signingConfigs 必须写在 buildTypes **前面**。
+    //    Groovy DSL 是顺序求值的：buildTypes.release 里引用的
+    //    `signingConfigs.release` 在写 buildTypes 时必须已经存在，
+    //    否则报 `Could not get unknown property 'release' for SigningConfig container`。
+    signingConfigs {
+        release {
+            if (hasReleaseKeystore) {
+                // storeFile 用 rootProject 解析 —— keystore.properties 里的路径
+                // 是相对 android/ 的，不是相对 android/app/ 的。
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+                // 三种签名方案全开。
+                //   v2 是 minSdk 24（Android 7.0）的最低要求，AGP 默认也只出 v2；
+                //   但部分国产 ROM 的安装器和第三方安装工具会去查 v1（JAR 签名），
+                //   只出 v2 时偶发「解析包时出现问题」。
+                //   本机没有真机可验证，多签两种方案只是几秒钟的构建成本，
+                //   换来的是少一类难排查的安装失败。
+                enableV1Signing true
+                enableV2Signing true
+                enableV3Signing true
+            }
+        }
+    }
+    buildTypes {
+        release {
+            // ⚠️ 刻意保持 false（v1.12.0）。
+            //    Capacitor 插件是**反射加载**的（按 capacitor.plugins.json 里的类名
+            //    Class.forName），ML Kit 也大量用反射。开 R8 能砍掉不少体积
+            //    （19 MB 的 dex 里大部分是没用到的日/韩/梵文识别器），
+            //    但没有真机验证过，一旦被裁掉就是「装上就崩」。
+            //    要开的话请先加好 keep 规则并**在真机上完整跑一遍**。
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (hasReleaseKeystore) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

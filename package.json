@@ -1,0 +1,69 @@
+{
+  "name": "zhouzhouji",
+  "version": "1.13.8",
+  "description": "周周记（校园活动周历）—— 粘贴通知自动提取活动名称/时间/地点，按周归类；并内置打卡、待办、记账与账户余额对账的纯本地离线应用",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "serve": "node tools/serve.mjs",
+    "test": "node tests/run_all.mjs",
+    "test:unit": "node tests/run_tests.mjs",
+    "test:corpus": "node tests/corpus_test.mjs",
+    "test:category": "node tests/category_test.mjs",
+    "test:record": "node tests/record_test.mjs",
+    "test:todo": "node tests/todo_test.mjs",
+    "test:account": "node tests/account_test.mjs",
+    "test:asset": "node tests/asset_test.mjs",
+    "test:e2e": "node tests/e2e_test.mjs",
+    "test:ocr": "python tests/test_ocr_clean.py",
+    "ocr": "python tools/ocr_server.py",
+    "pwa": "node tools/build_pwa.mjs",
+    "pwa:check": "node tools/build_pwa.mjs --check",
+    "icons": "node tools/make_icons.mjs",
+    "android:add": "npx cap add android",
+    "android:sync": "npx cap sync android && node tools/patch_gradle_mirrors.mjs",
+    "android:mirrors": "node tools/patch_gradle_mirrors.mjs",
+    "android:open": "npx cap open android",
+    "android:apk": "cd android && gradlew.bat assembleDebug",
+    "android:apk:release": "cd android && gradlew.bat assembleRelease",
+    "android:sign:init": "node tools/gen_keystore_props.mjs",
+    "android:sign:backup": "node tools/make_signing_backup.mjs",
+    "verify:glass": "node tools/verify_glass.mjs",
+    "verify:pwa": "node tools/verify_pwa.mjs",
+    "verify:nav": "node tools/verify_nav_icon.mjs",
+    "verify:backup": "node tools/verify_backup.mjs",
+    "verify:icons": "node tools/verify_icons.mjs",
+    "verify:assets": "node tools/verify_assets.mjs",
+    "verify:week": "node tools/verify_week_scroll.mjs",
+    "verify:gestures": "node tools/verify_gestures.mjs",
+    "verify:skip": "node tools/verify_skip.mjs",
+    "verify:ledgerform": "node tools/verify_ledger_form.mjs",
+    "verify:ledgerlist": "node tools/verify_ledger_list.mjs",
+    "verify:ledgeracct": "node tools/verify_ledger_account.mjs",
+    "verify:transfer": "node tools/verify_account_transfer.mjs",
+    "verify:acctdetail": "node tools/verify_account_detail.mjs",
+    "verify:all": "node tools/verify_all.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@capacitor-mlkit/text-recognition": "^8.2.1",
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/filesystem": "^8.1.3",
+    "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/share": "^8.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "puppeteer-core": "^25.0.0"
+  },
+  "comments": {
+    "runtime": "应用本体零依赖，纯原生 HTML/CSS/JS（ES Module），无需构建步骤。@capacitor/* 仅用于打包成安卓 APK，网页版运行时不加载它们（见 web/js/services/native_bridge.js 的说明）",
+    "python": "仅在图片 OCR 时需要 Python 3 与 winrt-* 运行库（由 tools/启动OCR服务.bat 自动安装）",
+    "puppeteer-core": "仅端到端测试需要，且需本机已安装 Chrome 或 Edge",
+    "android": "打包 APK 需要 JDK 21（AGP 8.13 与 Capacitor 8 都要求 JavaVersion.VERSION_21）+ Android SDK（compileSdk 36）。只在打包时需要，应用运行不需要。详见 06_安卓安装与部署.md"
+  }
+}

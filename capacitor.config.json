@@ -1,0 +1,19 @@
+{
+  "appId": "com.zhouzhouji.app",
+  "appName": "周周记",
+  "webDir": "web",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false,
+    "backgroundColor": "#f4f6fb"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_zhouzhouji",
+      "iconColor": "#1B7CFD"
+    }
+  }
+}

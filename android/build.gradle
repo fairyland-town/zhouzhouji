@@ -1,0 +1,38 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+// ⚠️ 本文件**有意偏离 Capacitor 默认模板**：默认模板用的是 `google()`，
+//    它会解析到 maven.google.com —— 该域名在部分网络环境下不可达。
+//    实测 dl.google.com/dl/android/maven2 是其同一份内容的直连地址，可正常访问。
+//    因此这里把 google() 换成显式 URL，并补上阿里云镜像作为兜底。
+//    如果日后重新执行 `npx cap add android` 覆盖本文件，需要重新应用这些改动。
+buildscript {
+    
+    repositories {
+        maven { url 'https://dl.google.com/dl/android/maven2' }    // 取代 google()
+        maven { url 'https://maven.aliyun.com/repository/google' }  // 镜像兜底
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.13.0'
+        classpath 'com.google.gms:google-services:4.4.4'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+apply from: "variables.gradle"
+
+allprojects {
+    repositories {
+        maven { url 'https://dl.google.com/dl/android/maven2' }    // 取代 google()
+        maven { url 'https://maven.aliyun.com/repository/google' }  // 镜像兜底
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        mavenCentral()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

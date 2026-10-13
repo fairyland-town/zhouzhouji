@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>周周记 · 品牌资产预览</title>
+<style>
+  :root {
+    --c-primary: #2563eb;
+    --c-primary-dark: #1d4ed8;
+    --c-text: #1a2233;
+    --c-text-2: #5b6678;
+    --c-text-3: #939db0;
+    --c-bg: #f4f6fa;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+            "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 48px 32px 96px;
+    background: var(--c-bg);
+    background-image:
+      radial-gradient(760px 440px at 10% 0%, rgba(37,99,235,.12), transparent 62%),
+      radial-gradient(640px 420px at 94% 10%, rgba(139,92,246,.09), transparent 62%),
+      radial-gradient(560px 400px at 56% 100%, rgba(16,185,129,.07), transparent 60%);
+    font-family: var(--font);
+    color: var(--c-text);
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  h1 { font-size: 21px; font-weight: 700; margin: 0 0 6px; letter-spacing: .02em; }
+  .sub { font-size: 13px; color: var(--c-text-2); margin: 0 0 40px; line-height: 1.7; }
+  h2 {
+    font-size: 12px; font-weight: 700; color: var(--c-text-3);
+    letter-spacing: .1em; margin: 0 0 18px;
+  }
+  section { margin-bottom: 50px; }
+  .card {
+    background: rgba(255,255,255,.74);
+    border: 1px solid rgba(20,30,55,.07);
+    border-radius: 20px;
+    padding: 30px 32px;
+    box-shadow: 0 1px 2px rgba(20,30,55,.04), 0 14px 40px -14px rgba(20,30,55,.14);
+    backdrop-filter: blur(14px) saturate(1.5);
+  }
+  .row { display: flex; gap: 34px; align-items: flex-end; flex-wrap: wrap; }
+  .item { text-align: center; }
+  .item img { display: block; box-shadow: 0 6px 18px -6px rgba(20,30,55,.30); border-radius: 22.5%; }
+  .item span { display: block; margin-top: 10px; font-size: 11px; color: var(--c-text-3); line-height: 1.5; }
+  .px { image-rendering: pixelated; }
+
+  .mask { width: 132px; height: 132px; border-radius: 50%; overflow: hidden;
+          box-shadow: 0 10px 26px -8px rgba(20,30,55,.28); }
+  .mask img { width: 100%; height: 100%; display: block; }
+  .squircle { border-radius: 30%; }
+
+  .lockup { display: flex; align-items: center; gap: 16px; }
+  .lockup img { width: 70px; height: 70px; border-radius: 22.5%; box-shadow: 0 6px 18px -6px rgba(20,30,55,.30); }
+  .lockup .cn { font-size: 30px; font-weight: 800; letter-spacing: .08em; line-height: 1; }
+  .lockup .en { font-size: 11px; font-weight: 700; letter-spacing: .26em;
+                color: var(--c-primary); margin-top: 5px; }
+  .lockup .tag { font-size: 12px; color: var(--c-text-2); margin-top: 7px; letter-spacing: .04em; }
+
+  .home { border-radius: 24px; padding: 26px 22px;
+          background: linear-gradient(160deg, #3b6fe0 0%, #1e3f9e 100%);
+          display: flex; gap: 22px; flex-wrap: wrap; }
+  .tile { width: 74px; text-align: center; }
+  .tile img { width: 74px; height: 74px; border-radius: 22.5%;
+              box-shadow: 0 8px 20px -6px rgba(0,0,0,.45); display: block; }
+  .tile span { display: block; margin-top: 8px; font-size: 12px; color: #fff;
+               text-shadow: 0 1px 3px rgba(0,0,0,.4); }
+  .tile--ghost { opacity: .34; }
+  .tile--ghost img { filter: saturate(.35); }
+
+  .tabbar { display: flex; gap: 6px; align-items: flex-end;
+            background: #dee1e6; padding: 8px 8px 0; border-radius: 10px 10px 0 0; }
+  .tab { display: flex; align-items: center; gap: 8px; padding: 9px 14px 9px 10px;
+         border-radius: 9px 9px 0 0; background: transparent;
+         font-size: 12px; color: #3c4043; max-width: 220px; }
+  .tab--active { background: #fff; color: #202124; font-weight: 600; }
+  .tab img { width: 16px; height: 16px; border-radius: 3px; flex-shrink: 0; }
+
+  .swatches { display: flex; gap: 14px; flex-wrap: wrap; }
+  .sw { text-align: center; }
+  .sw i { display: block; width: 78px; height: 54px; border-radius: 12px;
+          box-shadow: inset 0 0 0 1px rgba(20,30,55,.08); }
+  .sw code { display: block; margin-top: 8px; font-size: 11px; color: var(--c-text-2);
+             font-family: ui-monospace, Menlo, monospace; }
+  .sw em { display: block; font-size: 11px; color: var(--c-text-3); font-style: normal; margin-top: 2px; }
+
+  .bgrow { display: flex; gap: 18px; flex-wrap: wrap; }
+  .bgchip { width: 128px; height: 128px; border-radius: 18px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: inset 0 0 0 1px rgba(20,30,55,.06); }
+  .bgchip img { width: 74px; height: 74px; border-radius: 22.5%; }
+
+  .note { font-size: 12px; color: var(--c-text-2); line-height: 1.8; }
+  .note b { color: var(--c-text); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>周周记 · 品牌资产</h1>
+  <p class="sub">
+    大尺寸用设计稿的 3D 黏土版；小尺寸（浏览器标签页）用同构图的扁平矢量版 ——
+    3D 版的柔和渐变与投影缩到 16px 会糊成一团，扁平版只留「日历 + 勾选格」，反而认得出。<br>
+    圆角半径由脚本从源图<b>实测</b>（本稿约 25.9%），不是硬编码的猜测值 ——
+    猜小了会把蓝色角啃掉，猜大了会留白边。
+  </p>
+
+  <section>
+    <h2>字标锁定</h2>
+    <div class="card">
+      <div class="lockup">
+        <img src="icons/icon-192.png" alt="周周记">
+        <div>
+          <div class="cn">周周记</div>
+          <div class="en">WEEK BY WEEK</div>
+          <div class="tag">校园活动周历 · 计划 / 记录 / 打卡 / 管理</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>尺寸阶梯</h2>
+    <div class="card">
+      <div class="row">
+        <div class="item"><img src="icons/icon-512.png" width="128" height="128" alt="512"><span>512<br>应用商店</span></div>
+        <div class="item"><img src="icons/icon-192.png" width="96" height="96" alt="192"><span>192<br>主屏图标</span></div>
+        <div class="item"><img src="icons/apple-touch-icon.png" width="66" height="66" alt="180"><span>180<br>iOS 主屏</span></div>
+        <div class="item"><img class="px" src="icons/favicon-48.png" width="48" height="48" alt="48"><span>48<br>Windows</span></div>
+        <div class="item"><img class="px" src="icons/favicon-32.png" width="32" height="32" alt="32"><span>32<br>标签页</span></div>
+        <div class="item"><img class="px" src="icons/favicon-16.png" width="16" height="16" alt="16"><span>16<br>最小尺寸</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>浏览器标签页实景</h2>
+    <div class="card">
+      <div class="tabbar">
+        <div class="tab tab--active">
+          <img src="icons/favicon-16.png" alt="">
+          <span>周周记</span>
+        </div>
+        <div class="tab"><img src="icons/favicon-16.png" alt="" style="filter:saturate(.3)"><span>新标签页</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>安卓自适应图标（圆形 / 超椭圆 / 圆角方遮罩）</h2>
+    <div class="card">
+      <div class="row" style="align-items:flex-start">
+        <div class="item"><div class="mask"><img src="icons/icon-maskable-512.png" alt="maskable 圆形"></div><span>maskable · 圆形</span></div>
+        <div class="item"><div class="mask squircle"><img src="icons/icon-maskable-512.png" alt="maskable 超椭圆"></div><span>maskable · 超椭圆</span></div>
+        <div class="item"><div class="mask" style="border-radius:18%"><img src="icons/icon-maskable-512.png" alt="maskable 圆角方"></div><span>maskable · 圆角方</span></div>
+        <div class="note" style="max-width:280px">
+          用 maskable 版本：画布<b>整幅铺满不透明底色</b>（蓝取自作品自身边缘），
+          日历缩进到中央安全区。<br>
+          无论系统裁成圆形、超椭圆还是水滴形，都不会露出白角或被切掉。
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:34px; align-items:flex-start">
+        <div class="item"><div class="mask"><img src="icons/icon-512.png" alt="普通版裁圆"></div><span>普通版也留了 4% 内边距<br>圆形遮罩下内容不丢</span></div>
+        <div class="note" style="max-width:420px">
+          普通版（非 maskable）会填满整个画布。有些启动器仍会对它套圆形遮罩，
+          所以这里刻意留了 <b>4% 内边距</b> —— 贴边画的话，
+          日历左右两侧的活页环与右下角钱包会被圆切掉。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>主屏实景</h2>
+    <div class="card">
+      <div class="home">
+        <div class="tile tile--ghost"><img src="icons/icon-192.png" alt=""><span>日历</span></div>
+        <div class="tile"><img src="icons/icon-192.png" alt="周周记"><span>周周记</span></div>
+        <div class="tile tile--ghost"><img src="icons/icon-192.png" alt=""><span>图库</span></div>
+        <div class="tile tile--ghost"><img src="icons/icon-192.png" alt=""><span>浏览器</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>配色</h2>
+    <div class="card">
+      <div class="swatches">
+        <div class="sw"><i style="background:#2563eb"></i><code>#2563eb</code><em>应用主色</em></div>
+        <div class="sw"><i style="background:#1d4ed8"></i><code>#1d4ed8</code><em>深主色</em></div>
+        <div class="sw"><i style="background:#74b3fa"></i><code>#74b3fa</code><em>图标浅蓝</em></div>
+        <div class="sw"><i style="background:#1c66e6"></i><code>#1c66e6</code><em>图标主蓝</em></div>
+        <div class="sw"><i style="background:#ffffff"></i><code>#ffffff</code><em>日历 / 勾</em></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>深底 / 浅底对照</h2>
+    <div class="card">
+      <div class="bgrow">
+        <div class="bgchip" style="background:#ffffff"><img src="icons/icon-192.png" alt="浅底"></div>
+        <div class="bgchip" style="background:#f4f6fa"><img src="icons/icon-192.png" alt="页面底色"></div>
+        <div class="bgchip" style="background:#22303f"><img src="icons/icon-192.png" alt="深底"></div>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>
